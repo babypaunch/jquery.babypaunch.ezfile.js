@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="user-scalable=no, width=device-width, initial-scale=1">
+    <title>EZFILE</title>
+	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+	<style>
+		@import url(https://fonts.googleapis.com/earlyaccess/nanumgothic.css);
+
+		* {
+			font-family: 'Nanum Gothic', sans-serif;
+			padding: 0;
+			margin: 0;
+		}
+		
+		html, body {
+			width: 100%;
+			height: 100%;
+		}
+		
+		.layer {
+			width: 100%;
+			height: 100%;
+			padding: 0;
+			margin: 0;
+			display: table;
+			position: absolute;
+		}
+		
+		.cell {
+			display: table-cell;
+			vertical-align: middle;
+			width: 0;
+			height: 100%;
+			padding: 10px;
+			margin: 0 auto;
+		}
+		
+		code {display: block; border-radius: 0;}
+		.tab1x:before {content: "\00a0\00a0\00a0\00a0";}
+		.tab2x:before {content: "\00a0\00a0\00a0\00a0\00a0\00a0\00a0\00a0";}
+		.tab3x:before {content: "\00a0\00a0\00a0\00a0\00a0\00a0\00a0\00a0\00a0\00a0\00a0\00a0";}
+		.tab4x:before {content: "\00a0\00a0\00a0\00a0\00a0\00a0\00a0\00a0\00a0\00a0\00a0\00a0\00a0\00a0\00a0\00a0";}
+		.tab5x:before {content: "\00a0\00a0\00a0\00a0\00a0\00a0\00a0\00a0\00a0\00a0\00a0\00a0\00a0\00a0\00a0\00a0\00a0\00a0\00a0\00a0";}
+	</style>
+</head>
+<body>
+	<div class="layer">
+		<div class="cell">
+
+			<!--
+			<div class="container">
+				<div class="panel panel-default">
+					<div class="panel-heading">
+						Example 1. - 기본 사용, 전체 111건, 현재 1페이지
+					</div>
+					<div class="panel-body">
+						<div>
+<code>$("#pager1")</code>
+<code class="tab1x">.pagify({"total": 111</code>
+<code class="tab2x">, "current": 1</code>
+<code class="tab1x">})</code>
+<code class="tab1x">.on("click", "a", function(e){</code>
+<code class="tab2x">e.preventDefault();</code>
+<code class="tab2x">alert($(this).attr("data-pager-index"));</code>
+<code class="tab1x">})</code>
+<code class="tab1x">.on("change", "select", function(){</code>
+<code class="tab2x">alert($(this).val());</code>
+<code class="tab1x">});</code>
+						</div>
+						<div id="pager1"></div>
+					</div>
+				</div>
+			</div>
+			-->
+
+			<div class="container">
+				<div class="panel panel-default">
+					<div class="panel-heading">
+						Example 1. - 하나만 업로드 가능
+					</div>
+					<div class="panel-body">
+						<div id="file1"></div>
+					</div>
+				</div>
+			</div>
+
+			<div class="container">
+				<div class="panel panel-default">
+					<div class="panel-heading">
+						Example 2. - 무제한 업로드 가능
+					</div>
+					<div class="panel-body">
+						<div id="file2"></div>
+					</div>
+				</div>
+			</div>
+
+			<div class="container">
+				<div class="panel panel-default">
+					<div class="panel-heading">
+						Example 3. - 업로드 3개 이하로 제한
+					</div>
+					<div class="panel-body">
+						<div id="file3"></div>
+					</div>
+				</div>
+			</div>
+
+			<div class="container">
+				<div class="panel panel-default">
+					<div class="panel-heading">
+						Example 4. - 첨부 가능 확장자명(gif, jpg, jpeg, png), 사이즈 제한(900, 300, true), 용량제한(10mb)
+					</div>
+					<div class="panel-body">
+						<div id="file4"></div>
+					</div>
+				</div>
+			</div>
+
+			<div class="container">
+				<div class="panel panel-default">
+					<div class="panel-heading">
+						Example 5. - 첨부 가능 확장자명 gif 하나만, 비율 제한(8, 2), 용량제한(10mb)
+					</div>
+					<div class="panel-body">
+						<div id="file5"></div>
+					</div>
+				</div>
+			</div>
+		</div><!-- div.cell -->
+	</div><!-- div.layer -->
+    <script src="http://code.jquery.com/jquery-3.1.1.min.js"></script>
+	<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-validate/1.15.1/jquery.validate.js"></script>
+	<script src="jquery.babypaunch.ezfile.js"></script>
+	<script>
+		$(function(){
+			$.fn.ezfile = function(json, add, remove){
+				var defaults = {
+					text: "업로드할 파일을 선택하세요." //"Select a file to upload."
+					, isMulti: false
+					, limit: 0
+					, style: {
+						icon: "style='display: none; background: gray; color: white; padding: 3px; margin-right: 5px;'"
+						, file: "style='float: right; border: 0; background: gray; color: white; padding: 0 2px;'"
+						, delete: "style='display: none; float: right; border: 0; background: gray; color: white; padding: 0 2px;'"
+					}
+					, icon: {
+						ppt: "brown"
+						, pptx: "brown"
+						, xls: "green"
+						, xlsx: "green"
+						, doc: "skyblue"
+						, docx: "skyblue"
+						, "7z": "black"
+						, zip: "black"
+						, jar: "black"
+						, alz: "black"
+					}
+				};
+
+				$.extend(true, defaults, json);
+
+				return this.each(function(){
+					var $root = $(this);
+
+					var html = ""
+					+ "<div style='border: 1px solid silver; padding: 3px; margin: 5px; width: 100%;'>"
+						+ "<span class='icon'" + defaults.style.icon + "></span>"
+						+ "<span class='text'>" + defaults.text + "</span>"
+						+ "<input type='file' name='" + defaults.name + "' style='display: none;'/>"
+						+ "<button class='file' type='button' " + defaults.style.file + ">FILE</button>"
+						+ "<button class='delete' type='button' " + defaults.style.delete + ">Delete</button>"
+					+ "</div>";
+
+					$root
+						.html(html)
+						.on("click", "button.file", function(){
+							console.log($(this).prev("input").attr("name"));
+							$(this).prev("input").trigger("click");
+						})
+						.on("change", "input[type='file']", function(){
+							if(defaults.isMulti){
+								if(defaults.limit === 0){
+									$root.append(html);
+								}else{
+									if(defaults.limit > $root.find("input[type='file'][name='" + $(this).attr("name") + "']").length){
+										$root.append(html);
+									}
+								}
+							}
+
+							var fileNames = $(this).val().split("\\")[2];
+							var fileName = fileNames.substr(0, fileNames.lastIndexOf("."));
+							var fileExt = fileNames.substr(fileNames.lastIndexOf(".") + 1);
+							$(this).prev("span.text").text(fileName).prev("span.icon").show().css({"background": defaults.icon[fileExt] || "gray"}).text(fileExt).end().end().next("button.file").hide().next("button.delete").show();
+						})
+						.on("click", "button.delete", function(){
+							$(this).parent().remove();
+							if(defaults.isMulti){
+								var $files = $root.find("input[type='file'][name='" + $(this).prev().prev().attr("name") + "']");
+								var count = 0;
+								$files.each(function(){
+									if($(this).val() !== ""){
+										count++;
+									}
+								});
+								if($files.length === count){
+									$root.append(html);
+								}
+							}else{
+								$root.append(html);
+							}
+						})
+					;
+				}); //end: return this.each(function(){
+			}; //end: $.fn.ezfile = function(json, add, remove){
+
+			$("#file1").ezfile({name: "upfile1"}, function(formData){
+				console.log("[Y]", formData);
+			}, function(formData){
+				console.log("[N]", formData);
+			});
+
+			$("#file2").ezfile({name: "upfile2", isMulti: true});
+
+			$("#file3").ezfile({name: "upfile3", isMulti: true, limit: 3});
+
+			$("#file4").ezfile({name: "upfile4", ext: ["gif", "jpg", "jpeg", "png"], size: [900, 300, true], byte: "10mb"});
+
+			$("#file5").ezfile({name: "upfile5", ext: "gif", ratio: [8, 2], byte: "10mb"});
+		}); //end: $(function(){
+	</script>
+</body>
+</html>
