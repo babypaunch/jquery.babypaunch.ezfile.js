@@ -18,16 +18,26 @@ $.fn.ezfile = function(json){
 			, delete: "style='display: none; float: right; border: 0; background: gray; color: white; padding: 0 2px;'"
 		}
 		, icon: {
-			ppt: "brown"
-			, pptx: "brown"
-			, xls: "green"
-			, xlsx: "green"
-			, doc: "skyblue"
-			, docx: "skyblue"
+			ppt: "maroon"
+			, pptx: "maroon"
+			, xls: "limegreen"
+			, xlsx: "limegreen"
+			, doc: "dodgerblue"
+			, docx: "dodgerblue"
 			, "7z": "black"
 			, zip: "black"
 			, jar: "black"
+			, tar: "black"
+			, tgz: "black"
 			, alz: "black"
+			, tgz: "black"
+			, html: "skyblue"
+			, htm: "skyblue"
+			, png: "orange"
+			, gif: "orange"
+			, jpg: "orange"
+			, jpeg: "orange"
+			, bmp: "orange"
 		}
 	};
 
@@ -92,9 +102,9 @@ $.fn.ezfile = function(json){
 					}
 					if(!result){
 						alert("업로드 파일의 용량은 " + defaults.byte + "이하로 제한합니다.");
+						callback(result); //onload는 비동기 동작이므로 callback 패턴을 통해 처리가 필요함.
+						return;
 					}
-
-					callback(result); //onload는 비동기 동작이므로 callback 패턴을 통해 처리가 필요함.
 				} //end: if(defaults.byte !== undefined){
 
 				if(defaults.size !== undefined || defaults.ratio !== undefined){
@@ -138,6 +148,12 @@ $.fn.ezfile = function(json){
 						this.remove(); //사용할 일 없으므로 이미지 객체 제거
 						callback(result); //onload는 비동기 동작이므로 callback 패턴을 통해 처리가 필요함.
 					}; //end: img.onload = function(){
+
+					img.onerror = function(){ //fake 이미지 파일인 경우 처리
+						alert("정상적인 이미지 파일이 아닙니다.");
+						this.remove(); //사용할 일 없으므로 이미지 객체 제거
+						callback(false); //onload는 비동기 동작이므로 callback 패턴을 통해 처리가 필요함.
+					}
 				} //end: if(defaults.size !== undefined){
 			} //end: fr.onload = function(){
 		} //end: , uploadable: function($element, defaults){
@@ -164,19 +180,14 @@ $.fn.ezfile = function(json){
 			})
 			.on("change", "input[type='file']", function(){
 				var $parent = $(this).parent();
+				var $wrapper = $parent.parent();
 				var file = ezfile.file($(this));
 
 				if(!ezfile.isExt($(this), defaults)){
 					$parent.remove();
 					$root.append(html);
+					return;
 				}
-
-				ezfile.uploadable($(this), defaults, function(result){
-					if(!result){
-						$parent.remove();
-						$root.append(html);
-					}
-				});
 
 				if(defaults.limit !== undefined){
 					if(defaults.limit === 0){
@@ -189,6 +200,27 @@ $.fn.ezfile = function(json){
 				}
 
 				$(this).prev("span.text").text(file.name).prev("span.icon").show().css({"background": defaults.icon[file.ext] || "gray"}).text(file.ext).end().end().next("button.file").hide().next("button.delete").show();
+
+				ezfile.uploadable($(this), defaults, function(result){
+					if(!result){
+						$parent.remove();
+						if(defaults.limit === undefined){
+							$root.append(html);
+						}else{
+							if(defaults.limit !== 0){
+								var appendable = 0;
+								$wrapper.find("input[type=file]").each(function(){
+									if($(this).val().length > 0){
+										appendable++;
+									}
+								});
+								if(defaults.limit - 1 === appendable){
+									$root.append(html);
+								}
+							}
+						}
+					}
+				});
 			})
 			.on("click", "button.delete", function(){
 				$(this).parent().remove();
