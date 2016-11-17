@@ -2,7 +2,7 @@
 * ezfile
 * dev: 정대규
 * first: 2016.11.15
-* version: 2.0
+* version: 1.0
 * lisence: MIT(free)
 * email: babypaunch@gmail.com
 */
