@@ -18,8 +18,10 @@ $.fn.ezfile = function(json){
 			, delete: "style='display: none; float: right; border: 0; background: gray; color: white; padding: 0 2px;'"
 		}
 		, icon: {
-			ppt: "maroon"
+			pdf: "red"
+			, ppt: "maroon"
 			, pptx: "maroon"
+			, csv: "limegreen"
 			, xls: "limegreen"
 			, xlsx: "limegreen"
 			, doc: "dodgerblue"
