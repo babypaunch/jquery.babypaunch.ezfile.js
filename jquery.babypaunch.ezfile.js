@@ -1,8 +1,8 @@
 /*
 * ezfile
 * dev: 정대규
-* first: 2016.11.15
-* version: 1.0
+* first: 2016.12.15
+* version: 1.1
 * lisence: MIT(free)
 * email: babypaunch@gmail.com
 */
@@ -10,12 +10,16 @@
 
 var ezfile = {
 	file: function($element){
-		var name = $element[0].files[0].name;
+		var file = $element[0].files[0].name;
 		return {
-			name: name.substr(0, name.lastIndexOf("."))
-			, ext: name.substr(name.lastIndexOf(".") + 1)
+			name: file.substr(0, file.lastIndexOf("."))
+			, ext: file.substr(file.lastIndexOf(".") + 1)
 		}
 	} //end: file: function($element){
+
+	, fileName: function($element){
+		return $element.val().substr($element.val().lastIndexOf("\\") + 1);
+	} //end: , fileName: function($element){
 
 	, isExt: function($element, data){
 		if(data.ext === undefined){ //bypass
@@ -23,10 +27,10 @@ var ezfile = {
 		}
 
 		var result = true;
-		var name = this.file($element);
+		var file = this.file($element);
 		switch($.type(data.ext)){ //입력받은 ext 확인
 			case "string": //문자열이면
-				if(data.ext.toLowerCase() !== name.ext){
+				if(data.ext.toLowerCase() !== file.ext){
 					result = false;
 					alert("업로드 파일의 확장자는 대소문자 구분없이 " + data.ext + "만 허용됩니다.");
 				}
@@ -34,7 +38,7 @@ var ezfile = {
 			case "array": //배열이면
 				result = false;
 				for(var i = 0; i < data.ext.length; i++){
-					if(data.ext[i].toLowerCase() === name.ext){
+					if(data.ext[i].toLowerCase() === file.ext){
 						result = true;
 						break;
 					}
@@ -51,6 +55,40 @@ var ezfile = {
 
 		return result;
 	} //end: , isExt: function($element, data){
+
+	/*
+	* default는 mb로 처리함.
+	*/
+	, isByte: function($element, byte, callback){
+		var result = true;
+
+		var fr = new FileReader();
+		fr.readAsDataURL($element[0].files[0]);
+		fr.onload = function(){ //fileReader가 load되고
+			var flag = byte.toLowerCase();
+			var bytes = Number(byte.replace(/[^0-9]/g, ""));
+			var unit = "mb";
+
+			var isMega = true;
+			for(var i = 0, arr = ["k", "m", "g", "t", "p"]; i < arr.length; i++){
+				if(flag.lastIndexOf(arr[i]) !== -1){
+					result = $element[0].files[0].size < bytes * Math.pow(1024, i + 1) ? true : false;
+					unit = arr[i] + "b";
+					isMega = false;
+				}
+			}
+
+			if(isMega){
+				result = $element[0].files[0].size < bytes * Math.pow(1024, 1 + 1) ? true : false;
+			}
+
+			if(!result){
+				alert("업로드 파일의 용량은 " + byte + unit + " 이하로 제한합니다.");
+			}
+
+			callback(result); //onload는 비동기 동작이므로 callback 패턴을 통해 처리가 필요함.
+		} //end: fr.onload = function(){
+	} //end: , isByte: function($element, byte, callback){
 
 	, uploadable: function($element, data, callback){ //width/height, ratio, byte
 		var result = true;
