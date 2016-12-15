@@ -8,6 +8,124 @@
 */
 "use strict";
 
+var ezfile = {
+	file: function($element){
+		var name = $element[0].files[0].name;
+		return {
+			name: name.substr(0, name.lastIndexOf("."))
+			, ext: name.substr(name.lastIndexOf(".") + 1)
+		}
+	} //end: file: function($element){
+
+	, isExt: function($element, data){
+		if(data.ext === undefined){ //bypass
+			return true;
+		}
+
+		var result = true;
+		var name = this.file($element);
+		switch($.type(data.ext)){ //입력받은 ext 확인
+			case "string": //문자열이면
+				if(data.ext.toLowerCase() !== name.ext){
+					result = false;
+					alert("업로드 파일의 확장자는 대소문자 구분없이 " + data.ext + "만 허용됩니다.");
+				}
+			break;
+			case "array": //배열이면
+				result = false;
+				for(var i = 0; i < data.ext.length; i++){
+					if(data.ext[i].toLowerCase() === name.ext){
+						result = true;
+						break;
+					}
+				}
+				if(!result){
+					alert("업로드 파일의 확장자는 대소문자 구분없이 " + data.ext.join() + "만 허용됩니다.");
+				}
+			break;
+			default: //기타면
+				result = false;
+				alert("파일의 확장자는 문자열이나 배열만 입력할 수 있습니다.");
+			break;
+		}
+
+		return result;
+	} //end: , isExt: function($element, data){
+
+	, uploadable: function($element, data, callback){ //width/height, ratio, byte
+		var result = true;
+
+		var fr = new FileReader();
+		fr.readAsDataURL($element[0].files[0]);
+		fr.onload = function(){ //fileReader가 load되고
+			if(data.byte !== undefined){
+				var flag = data.byte.toLowerCase();
+				var bytes = Number(data.byte.replace(/[^0-9]/g, ""));
+
+				for(var i = 0, arr = ["k", "m", "g", "t", "p"]; i < arr.length; i++){
+					if(flag.lastIndexOf(arr[i]) !== -1){
+						result = $element[0].files[0].size < bytes * Math.pow(1024, i + 1) ? true : false;
+					}
+				}
+				if(!result){
+					alert("업로드 파일의 용량은 " + data.byte + "이하로 제한합니다.");
+					callback(result); //onload는 비동기 동작이므로 callback 패턴을 통해 처리가 필요함.
+					return;
+				}
+			} //end: if(data.byte !== undefined){
+
+			if(data.size !== undefined || data.ratio !== undefined){
+				var img = new Image();
+				img.src = fr.result;
+
+				img.onload = function(){ //img객체가 load되고
+					if(data.size !== undefined){
+						var size = {
+							width: Number(data.size[0])
+							, height: Number(data.size[1])
+							, smaller: data.size[2] || false
+						};
+
+						if(size.smaller){ //작은 값도 허용
+							result = this.width <= size.width && this.height <= size.height ? true : false;
+							if(!result){
+								alert("이미지 파일의 크기는 가로(" + size.width + "px), 세로(" + size.height + "px)보다 작거나 같아야 합니다.");
+							}
+						}else{ //같아야만 한다면
+							result = this.width === size.width && this.height === size.height ? true : false;
+							if(!result){
+								alert("이미지 파일의 크기는 가로(" + size.width + "px), 세로(" + size.height + "px)와 같아야 합니다.");
+							}
+						}
+					} //end: if(data.size !== undefined){
+
+					if(data.ratio !== undefined){
+						var ratio = {
+							x: Number(data.ratio[0])
+							, y: Number(data.ratio[1])
+						};
+
+						var compares = [Math.round(this.width / 100), Math.round(this.height / 100)];
+						result = compares[0] === ratio.x && compares[1] === ratio.y ? true : false;
+						if(!result){
+							alert("이미지 파일의 비율은 가로(" + ratio.x + "), 세로(" + ratio.y + ")이여야 합니다.");
+						}
+					} //end: if(data.ratio !== undefined){
+
+					this.remove(); //사용할 일 없으므로 이미지 객체 제거
+					callback(result); //onload는 비동기 동작이므로 callback 패턴을 통해 처리가 필요함.
+				}; //end: img.onload = function(){
+
+				img.onerror = function(){ //fake 이미지 파일인 경우 처리
+					alert("정상적인 이미지 파일이 아닙니다.");
+					this.remove(); //사용할 일 없으므로 이미지 객체 제거
+					callback(false); //onload는 비동기 동작이므로 callback 패턴을 통해 처리가 필요함.
+				}
+			} //end: if(data.size !== undefined){
+		} //end: fr.onload = function(){
+	} //end: , uploadable: function($element, data){
+}; //end: var ezfile = {
+
 $.fn.ezfile = function(json){
 	var defaults = {
 		text: "업로드할 파일을 선택하세요." //"Select a file to upload."
@@ -42,124 +160,6 @@ $.fn.ezfile = function(json){
 			, bmp: "orange"
 		}
 	};
-
-	var ezfile = {
-		file: function($element){
-			var name = $element[0].files[0].name;
-			return {
-				name: name.substr(0, name.lastIndexOf("."))
-				, ext: name.substr(name.lastIndexOf(".") + 1)
-			}
-		} //end: file: function($element){
-
-		, isExt: function($element, defaults){
-			if(defaults.ext === undefined){ //bypass
-				return true;
-			}
-
-			var result = true;
-			var name = this.file($element);
-			switch($.type(defaults.ext)){ //입력받은 ext 확인
-				case "string": //문자열이면
-					if(defaults.ext.toLowerCase() !== name.ext){
-						result = false;
-						alert("업로드 파일의 확장자는 대소문자 구분없이 " + defaults.ext + "만 허용됩니다.");
-					}
-				break;
-				case "array": //배열이면
-					result = false;
-					for(var i = 0; i < defaults.ext.length; i++){
-						if(defaults.ext[i].toLowerCase() === name.ext){
-							result = true;
-							break;
-						}
-					}
-					if(!result){
-						alert("업로드 파일의 확장자는 대소문자 구분없이 " + defaults.ext.join() + "만 허용됩니다.");
-					}
-				break;
-				default: //기타면
-					result = false;
-					alert("파일의 확장자는 문자열이나 배열만 입력할 수 있습니다.");
-				break;
-			}
-
-			return result;
-		} //end: , isExt: function($element, defaults){
-
-		, uploadable: function($element, defaults, callback){ //width/height, ratio, byte
-			var result = true;
-
-			var fr = new FileReader();
-			fr.readAsDataURL($element[0].files[0]);
-			fr.onload = function(){ //fileReader가 load되고
-				if(defaults.byte !== undefined){
-					var flag = defaults.byte.toLowerCase();
-					var bytes = Number(defaults.byte.replace(/[^0-9]/g, ""));
-
-					for(var i = 0, arr = ["k", "m", "g", "t", "p"]; i < arr.length; i++){
-						if(flag.lastIndexOf(arr[i]) !== -1){
-							result = $element[0].files[0].size < bytes * Math.pow(1024, i + 1) ? true : false;
-						}
-					}
-					if(!result){
-						alert("업로드 파일의 용량은 " + defaults.byte + "이하로 제한합니다.");
-						callback(result); //onload는 비동기 동작이므로 callback 패턴을 통해 처리가 필요함.
-						return;
-					}
-				} //end: if(defaults.byte !== undefined){
-
-				if(defaults.size !== undefined || defaults.ratio !== undefined){
-					var img = new Image();
-					img.src = fr.result;
-
-					img.onload = function(){ //img객체가 load되고
-						if(defaults.size !== undefined){
-							var size = {
-								width: Number(defaults.size[0])
-								, height: Number(defaults.size[1])
-								, smaller: defaults.size[2] || false
-							};
-
-							if(size.smaller){ //작은 값도 허용
-								result = this.width <= size.width && this.height <= size.height ? true : false;
-								if(!result){
-									alert("이미지 파일의 크기는 가로(" + size.width + "px), 세로(" + size.height + "px)보다 작거나 같아야 합니다.");
-								}
-							}else{ //같아야만 한다면
-								result = this.width === size.width && this.height === size.height ? true : false;
-								if(!result){
-									alert("이미지 파일의 크기는 가로(" + size.width + "px), 세로(" + size.height + "px)와 같아야 합니다.");
-								}
-							}
-						} //end: if(defaults.size !== undefined){
-
-						if(defaults.ratio !== undefined){
-							var ratio = {
-								x: Number(defaults.ratio[0])
-								, y: Number(defaults.ratio[1])
-							};
-
-							var compares = [Math.round(this.width / 100), Math.round(this.height / 100)];
-							result = compares[0] === ratio.x && compares[1] === ratio.y ? true : false;
-							if(!result){
-								alert("이미지 파일의 비율은 가로(" + ratio.x + "), 세로(" + ratio.y + ")이여야 합니다.");
-							}
-						} //end: if(defaults.ratio !== undefined){
-
-						this.remove(); //사용할 일 없으므로 이미지 객체 제거
-						callback(result); //onload는 비동기 동작이므로 callback 패턴을 통해 처리가 필요함.
-					}; //end: img.onload = function(){
-
-					img.onerror = function(){ //fake 이미지 파일인 경우 처리
-						alert("정상적인 이미지 파일이 아닙니다.");
-						this.remove(); //사용할 일 없으므로 이미지 객체 제거
-						callback(false); //onload는 비동기 동작이므로 callback 패턴을 통해 처리가 필요함.
-					}
-				} //end: if(defaults.size !== undefined){
-			} //end: fr.onload = function(){
-		} //end: , uploadable: function($element, defaults){
-	}; //end: var ezfile = {
 
 	$.extend(true, defaults, json);
 
