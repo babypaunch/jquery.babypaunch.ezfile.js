@@ -2,6 +2,7 @@
 * ezfile
 * dev: 정대규
 * first: 2016.12.15
+* update: 2016.12.19
 * version: 1.1
 * lisence: MIT(free)
 * email: babypaunch@gmail.com
@@ -171,7 +172,7 @@ $.fn.ezfile = function(json){
 		, style: {
 			icon: "style='display: none; background: gray; color: white; padding: 3px; margin-right: 5px;'"
 			, file: "style='float: right; border: 0; background: gray; color: white; padding: 0 2px;'"
-			, delete: "style='display: none; float: right; border: 0; background: gray; color: white; padding: 0 2px;'"
+			, "delete": "style='display: none; float: right; border: 0; background: gray; color: white; padding: 0 2px;'"
 		}
 		, icon: {
 			pdf: "red"
@@ -188,7 +189,6 @@ $.fn.ezfile = function(json){
 			, tar: "black"
 			, tgz: "black"
 			, alz: "black"
-			, tgz: "black"
 			, html: "skyblue"
 			, htm: "skyblue"
 			, png: "orange"
@@ -210,7 +210,6 @@ $.fn.ezfile = function(json){
 			+ "<span class='text'>" + defaults.text + "</span>"
 			+ "<input type='file' name='" + defaults.name + "' style='display: none;'/>"
 			+ "<button class='file' type='button' " + defaults.style.file + ">FILE</button>"
-			+ "<button class='delete' type='button' " + defaults.style.delete + ">Delete</button>"
 		+ "</div>";
 
 		$root
