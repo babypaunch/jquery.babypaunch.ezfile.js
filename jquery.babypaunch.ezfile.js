@@ -210,6 +210,7 @@ $.fn.ezfile = function(json){
 			+ "<span class='text'>" + defaults.text + "</span>"
 			+ "<input type='file' name='" + defaults.name + "' style='display: none;'/>"
 			+ "<button class='file' type='button' " + defaults.style.file + ">FILE</button>"
+			+ "<button class='delete' type='button' " + defaults.style["delete"] + ">Delete</button>"
 		+ "</div>";
 
 		$root
